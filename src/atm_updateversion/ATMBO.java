@@ -4,6 +4,9 @@
  * and open the template in the editor.
  */
 package atm_updateversion;
+import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,24 +17,61 @@ public class ATMBO {
     /**
      * @param args the command line arguments
      */
-    //当前账户卡号
-    public static String code[] = {"001","002","003"};
-    //当前账户密码
-    public static String password[] = {"001","002","003"};
-    //当前账户余额
-    public static double money[] = {1000.00,1000.00,1000.00};
     
-    public int index = -1;
+    /*
+    *注意静态数据类型只能在类中出现,但是这里是不需要静态数据类型的，因为我们使用了文本文件来储存信息？？？
+    */
+    private int count = 0;
+    //当前账户卡号
+    public String code[];                       /*????为什么数据要声明public或者private*/
+    //当前账户密码
+    public String password[];
+    //当前账户余额
+    public double money[];
+    
+    public String line = null;
+    public int index = 0;
+    
+    public ATMBO(){
+        try {
+            //calculate the number of user
+            FileReader filereader = new FileReader("file/users.txt");
+            BufferedReader bufferedreader = new BufferedReader(filereader);
+            while (bufferedreader.readLine()!=null) {
+                count++;
+            }
+            bufferedreader.close();   //需要先关闭，不然会影响到后面的文件读取
+            filereader.close();       //需要先关闭，不然会影响到后面的文件读取????
+            code = new String[count];
+            password = new String[count];
+            money = new double [count];
+
+            filereader = new FileReader("file/users.txt");       //??重新赋值
+            bufferedreader = new BufferedReader(filereader);     //??重新赋值
+            while ((line = bufferedreader.readLine())!=null) {
+                String temp[] = line.split(" ");
+                code[index] = temp[0];
+                password[index] = temp[1];
+                money[index] = Double.valueOf(temp[2]);
+                index++;
+            }
+            bufferedreader.close();
+            filereader.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /*
     *登陆业务
     *1.用户输入的卡号和密码作为登录业务的两个参数,由前面的ATMUI类调用的时候传入,一起判断
     *2.登录业务处理后,如果登录成功,返回-1,否则返回登录错误次数(作为全局变量存储起来)
     *
-	*
     */
     public int cs = 0;
     public int doLogin(String code_input, String password_input) {
-        index = java.util.Arrays.asList(code).indexOf(code_input);
+        index = java.util.Arrays.asList(code).indexOf(code_input);   //如果数组中不存在，返回index=-1,否则调整index的值，表示用户在数组中的位置
         //System.out.println(password_input.equals(password[index]));
         if ((index >= 0) && (password_input.equals(password[index]))) {
             return -1;
@@ -99,4 +139,21 @@ public class ATMBO {
             return 5;
         }
     }
+    
+    public void doQuit(){
+        try {
+            FileWriter filewriter = new FileWriter("file/users.txt");
+            BufferedWriter bufferedwriter = new BufferedWriter(filewriter);
+            for (index = 0; index < count; index++) {                   //性能上的考虑
+                bufferedwriter.write(code[index] + " " + password[index] + " "+ money[index]);
+                bufferedwriter.newLine();
+            }
+            bufferedwriter.close();
+            filewriter.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        } 
+    }
+
+        
 }
