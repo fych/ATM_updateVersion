@@ -1146,7 +1146,7 @@ public class ATMUI {
     *退卡
     */
     public void quit() {
-        bo.doQuit();
+        bo.doWriteBack();
         //重新初始化业务对象
         initBO();          //我认为这一行应该注释掉，从多用户的角度去思考就不应注释
         //重新显示登陆界面

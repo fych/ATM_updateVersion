@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  *
  * @author lucas-fang
  */
-public class ATMBO {
+public class ATMBO {           
 
     /**
      * @param args the command line arguments
@@ -31,32 +31,22 @@ public class ATMBO {
     
     public String line = null;
     public int index = 0;
+    public int array_index = 0;
     
     public ATMBO(){
         try {
             //calculate the number of user
             FileReader filereader = new FileReader("file/users.txt");
             BufferedReader bufferedreader = new BufferedReader(filereader);
-            while (bufferedreader.readLine()!=null) {
+            while (bufferedreader.readLine()!=null) {  //文件读取到尽头
                 count++;
             }
-            bufferedreader.close();   //需要先关闭，不然会影响到后面的文件读取
-            filereader.close();       //需要先关闭，不然会影响到后面的文件读取????
+            bufferedreader.close();   //关闭
+            filereader.close();       //关闭
             code = new String[count];
             password = new String[count];
             money = new double [count];
 
-            filereader = new FileReader("file/users.txt");       //??重新赋值
-            bufferedreader = new BufferedReader(filereader);     //??重新赋值
-            while ((line = bufferedreader.readLine())!=null) {
-                String temp[] = line.split(" ");
-                code[index] = temp[0];
-                password[index] = temp[1];
-                money[index] = Double.valueOf(temp[2]);
-                index++;
-            }
-            bufferedreader.close();
-            filereader.close();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -71,7 +61,9 @@ public class ATMBO {
     */
     public int cs = 0;
     public int doLogin(String code_input, String password_input) {
-        index = java.util.Arrays.asList(code).indexOf(code_input);   //如果数组中不存在，返回index=-1,否则调整index的值，表示用户在数组中的位置
+
+        doReadOut();
+        index = java.util.Arrays.asList(code).indexOf(code_input);      //如果数组中不存在，返回index=-1,否则调整index的值，表示用户在数组中的位置
         //System.out.println(password_input.equals(password[index]));
         if ((index >= 0) && (password_input.equals(password[index]))) {
             return -1;
@@ -84,23 +76,28 @@ public class ATMBO {
     *查询业务
     */
     public double doChaxun() {
+        doReadOut();
         return money[index];
     }
     /*
     *存款业务
     */
     public void doCunkuan(double amount) {
-            money[index] = money[index] + amount;
+        doReadOut();
+        money[index] = money[index] + amount;
+        doWriteBack();
     }
     
     /*
     *取款业务
     */
-    public boolean doQukuan(double amount) {                                   
+    public boolean doQukuan(double amount) {   
+        doReadOut();
         if(amount > money[index]){
             return false;
         } else {
             money[index] = money[index] - amount;
+            doWriteBack();
             return true;
         }
     }
@@ -109,10 +106,12 @@ public class ATMBO {
     *改密业务
     */
     public int doXiugai(String oldPass,String newPass, String confirmPass){     //默认参数为空字符串
+        doReadOut();
         if (oldPass.equals(password[index])) {  //string a == string b只能用于判断string指引的是否是同一个地方
             //authentica pass
             if (newPass.equals(confirmPass)) {
                 password[index] = newPass;
+                doWriteBack();
                 return 2;
             } else {
                 return 3;
@@ -123,7 +122,7 @@ public class ATMBO {
     }
     
     public int doTransfer(String transfer_card, double doublevalue, String transfer_passw) {
-
+        doReadOut();
         int cardindex = java.util.Arrays.asList(code).indexOf(transfer_card);
         if (cardindex < 0) {
             return 1; //卡号不存在
@@ -136,24 +135,44 @@ public class ATMBO {
         } else {
             money[index] -= doublevalue;
             money[cardindex] += doublevalue;
+            doWriteBack();
             return 5;
         }
     }
     
-    public void doQuit(){
+    public void doWriteBack(){
         try {
             FileWriter filewriter = new FileWriter("file/users.txt");
             BufferedWriter bufferedwriter = new BufferedWriter(filewriter);
-            for (index = 0; index < count; index++) {                   //性能上的考虑
-                bufferedwriter.write(code[index] + " " + password[index] + " "+ money[index]);
+            for (array_index = 0; array_index < count; array_index++) {                   //性能上的考虑
+                bufferedwriter.write(code[array_index] + " " + password[array_index] + " "+ money[array_index]);
                 bufferedwriter.newLine();
             }
+            array_index = 0;
             bufferedwriter.close();
             filewriter.close();
         } catch(Exception e) {
             e.printStackTrace();
         } 
     }
+    
+    public void doReadOut() {
+        try {
+            FileReader filereader = new FileReader("file/users.txt");
+            BufferedReader bufferedreader = new BufferedReader(filereader);
+            while ((line = bufferedreader.readLine())!=null) {
+                String temp[] = line.split(" ");
+                code[array_index] = temp[0];
+                password[array_index] = temp[1];
+                money[array_index] = Double.valueOf(temp[2]);
+                array_index++;
+            }
+            array_index = 0;
+            bufferedreader.close();
+            filereader.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        
 }
